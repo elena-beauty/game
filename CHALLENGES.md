@@ -120,7 +120,7 @@
 
 ## 9. Singapore — Chặng cuối: Chạy đua cả thành phố
 
-- **Mở khóa:** Hoàn thành 8 ván trong nước (hoặc đạt ≥ 16 sao).
+- **Mở khóa:** Đạt tối thiểu 2 sao ở **mọi** địa điểm trong nước.
 - **Bối cảnh:** Vườn công nghệ với các "siêu cây" phát sáng, tàu điện ngầm (MRT), khu vịnh Marina, đảo nghỉ dưỡng phía nam.
 - **Mục tiêu:** Đi hết lịch trình 1 ngày để kịp **show ánh sáng – nhạc nước ở vịnh lúc 20h**. Ván tổng hợp nhiều cơ chế:
   1. **Sân bay → MRT:** Lên đúng chuyến tàu (timing cửa đóng), đứng giữ thăng bằng khi tàu tăng/giảm tốc.
@@ -132,6 +132,33 @@
 - **Sao:** ⭐ kịp show 20h · ⭐⭐ không bị phạt · ⭐⭐⭐ còn > 10 phút dư + ảnh "Perfect".
 - **Phần thưởng:** Ảnh kỷ niệm cuối + credits chạy với toàn bộ ảnh trong album.
 - **Kỹ thuật:** Siêu cây là `CylinderGeometry` + đèn emissive thay đổi theo nhạc (`AudioAnalyser`); nhạc nước bằng particle `Points` + laser (`Line` additive blending).
+
+## 10. Ninh Bình — Đò Tràng An & leo Hang Múa
+
+- **Bối cảnh:** Quần thể danh thắng Tràng An – Tam Cốc: núi đá vôi sừng sững, cánh đồng lúa vàng, sông uốn lượn qua hang động; đỉnh Hang Múa có tượng rồng Ngọa Long nhìn xuống thung lũng.
+- **Phần A – Ngồi đò qua hang:** đò tự trôi, người chèo bằng chân.
+  - **Điều khiển:** `W`/`S` lái đò giữa các làn sông; `Space` cúi người khi vào hang trần thấp.
+  - **Chướng ngại:** đá ngầm, đò khác đi ngược chiều, gỗ trôi, thạch nhũ thả xuống trong hang, đàn vịt, lưới đánh cá.
+  - **Vật phẩm:** 5 bông sen trên mặt nước.
+- **Phần B – Leo Hang Múa (500 bậc đá):**
+  - **Điều khiển:** `A`/`D` leo, `Space` nhảy.
+  - **Chướng ngại:** dê núi lao xuống, đá lăn, bậc đá rêu trơn, đoàn khách đông.
+- **Bạn đồng hành:** chỉ chỗ có sen, hô "Cúi xuống!" khi vào hang, cổ vũ khi leo.
+- **Sao:** ⭐ lên đỉnh Ngọa Long · ⭐⭐ không va vách hang · ⭐⭐⭐ hái đủ 5 bông sen.
+
+## 11. Hội An — Phố cổ đèn lồng & thả hoa đăng
+
+- **Bối cảnh:** Phố cổ về đêm, nhà tường vàng mái ngói, đèn lồng lụa rực rỡ, Chùa Cầu, sông Hoài lấp lánh hoa đăng.
+- **Phần A – Thắp đèn lồng trên phố:**
+  - **Điều khiển:** `WASD` đi lại; `E` thắp đèn lồng.
+  - **Mục tiêu:** thắp sáng 6 cột đèn lồng rồi qua Chùa Cầu.
+  - **Chướng ngại:** đoàn khách du lịch, xích lô, xe đạp/xe máy ở ngã tư, gánh hàng rong, vũng nước trơn, người dừng chụp ảnh đột ngột.
+- **Phần B – Thuyền trên sông Hoài:**
+  - **Điều khiển:** `WASD` lái thuyền (thuyền có vẽ mắt ở mũi); `Space` thả hoa đăng.
+  - **Mục tiêu:** thả hoa đăng đúng 5 "điểm sáng" dọc sông, tới cầu An Hội.
+  - **Chướng ngại:** thuyền khách khác, cụm hoa đăng trôi, chân cầu, lưới cá.
+- **Bạn đồng hành:** nắm tay đi phố, chỉ đèn chưa thắp / điểm sáng kế tiếp, nhắc khi có xích lô.
+- **Sao:** ⭐ thả hoa đăng thành công · ⭐⭐ không va ai trên phố · ⭐⭐⭐ thả đúng 5 điểm sáng.
 
 ---
 
@@ -148,6 +175,8 @@
 | 7 | Đà Nẵng | Lướt ván thăng bằng + chụp ảnh timing | ★★★☆☆ | |
 | 8 | Phú Quốc | Lặn 3D, oxy + câu mực timing | ★★★★☆ | |
 | 9 | Singapore | Tổng hợp + đổi nhân vật | ★★★★★ | |
+| 10 | Ninh Bình | Đò qua hang + leo 500 bậc Hang Múa | ★★☆☆☆ | |
+| 11 | Hội An | Thắp đèn lồng + thả hoa đăng trên sông | ★★☆☆☆ | |
 
 ## Ý tưởng mở rộng
 

@@ -16,12 +16,14 @@ import { HaLongLevel } from '../scenes/levels/HaLongLevel.js';
 import { DaNangLevel } from '../scenes/levels/DaNangLevel.js';
 import { PhuQuocLevel } from '../scenes/levels/PhuQuocLevel.js';
 import { SingaporeLevel } from '../scenes/levels/SingaporeLevel.js';
+import { NinhBinhLevel } from '../scenes/levels/NinhBinhLevel.js';
+import { HoiAnLevel } from '../scenes/levels/HoiAnLevel.js';
 
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;
 
 // Mỗi ván là 1 scene, key trùng với "key" trong levels.json.
-export const LEVEL_SCENES = [HaNoiLevel, QuyNhonLevel, CatBaLevel, DaLatLevel, NinhThuanLevel, HaLongLevel, DaNangLevel, PhuQuocLevel, SingaporeLevel];
+export const LEVEL_SCENES = [HaNoiLevel, QuyNhonLevel, CatBaLevel, DaLatLevel, NinhThuanLevel, HaLongLevel, DaNangLevel, PhuQuocLevel, SingaporeLevel, NinhBinhLevel, HoiAnLevel];
 
 export const gameConfig = {
   type: Phaser.AUTO,

@@ -3,6 +3,7 @@ import { SCENES, EVENTS } from '../../config/keys.js';
 import { SaveSystem, getLevel } from '../../systems/SaveSystem.js';
 import { InputManager } from '../../systems/InputManager.js';
 import { burst } from '../../utils/fx.js';
+import { Music, LEVEL_MUSIC } from '../../systems/Music.js';
 
 /**
  * Lớp cha cho mọi ván. Vòng đời:
@@ -34,6 +35,7 @@ export class BaseLevel extends Phaser.Scene {
   create() {
     this.inputManager = new InputManager(this);
     this.cameras.main.fadeIn(400, 20, 12, 34);
+    Music.play(LEVEL_MUSIC[this.scene.key] ?? 'map');
     this.buildLevel();
     this.scene.launch(SCENES.HUD, { levelScene: this });
     this.scene.bringToTop(SCENES.HUD);
@@ -87,6 +89,7 @@ export class BaseLevel extends Phaser.Scene {
       this.cameras.main.shake(250, 0.008);
       this.player?.playAnim?.('hurt');
       hud?.failBanner?.(this.loseReason || 'Hết giờ mất rồi!');
+      Music.jingle('fail');
       this.time.delayedCall(1800, () => this.goResult({ win, stars, summary }));
       return;
     }
@@ -106,6 +109,7 @@ export class BaseLevel extends Phaser.Scene {
             cam.flash(350, 255, 255, 255);
             this.scene.setVisible(true, SCENES.HUD);
             hud?.celebrate?.(stars);
+            Music.jingle('victory');
             this.time.delayedCall(3000, () => this.goResult({ win, stars, summary, photo }));
           };
           const capture = () => done(downscale(img, 384, 216));

@@ -66,7 +66,7 @@ game/
     │   ├── gameConfig.js       # Kích thước, physics, danh sách scene
     │   ├── keys.js             # Hằng số: tên scene, nhân vật, event
     │   ├── characters.js       # Chỉ số + câu cổ vũ của Chồng / Vợ
-    │   └── levels.json         # 9 địa điểm: mô tả, điều khiển, điều kiện sao, vị trí trên bản đồ
+    │   └── levels.json         # 11 địa điểm: mô tả, điều khiển, điều kiện sao, vị trí trên bản đồ
     ├── scenes/
     │   ├── BootScene.js        # Chờ font tải
     │   ├── PreloadScene.js     # Tạo texture dùng chung
@@ -80,7 +80,8 @@ game/
     │       ├── BaseLevel.js
     │       ├── HaNoiLevel.js       QuyNhonLevel.js    CatBaLevel.js
     │       ├── DaLatLevel.js       NinhThuanLevel.js  HaLongLevel.js
-    │       └── DaNangLevel.js      PhuQuocLevel.js    SingaporeLevel.js
+    │       ├── DaNangLevel.js      PhuQuocLevel.js    SingaporeLevel.js
+    │       └── NinhBinhLevel.js    HoiAnLevel.js
     ├── objects/
     │   ├── Player.js           # Nhân vật người chơi (topdown / platformer / swim)
     │   └── Companion.js        # Bạn đồng hành: đi theo, nói chuyện, cổ vũ
@@ -142,17 +143,26 @@ Boot → Preload → MainMenu → CharacterSelect → TravelMap ⇄ Level (+ HUD
 | Tương tác / mua đồ | `E` |
 | Chụp ảnh (Phú Quốc) | `F` |
 | Đổi nhân vật (Singapore) | `Tab` |
+| Bật/tắt nhạc | `M` |
 | Tạm dừng | `Esc` |
 
 ## 7. Ảnh thật (khuôn mặt & kỷ niệm)
 
 - **Khuôn mặt nhân vật:** `public/assets/images/characters/boy.png` (Chồng), `girl.png` (Vợ). Vùng mặt cắt tròn chỉnh ở `PHOTOS` trong `src/art/CharacterArt.js`.
-- **Ảnh kỷ niệm theo địa điểm:** khai báo `"memoryPhoto"` trong `src/config/levels.json`, ví dụ `"memoryPhoto": "images/characters/quynhon.png"`. Hiện có: Quy Nhơn, Đà Nẵng, Phú Quốc, Singapore.
-  - Ảnh **mở khóa khi thắng ván**, hiện ở màn kết quả, thẻ địa điểm trên bản đồ và Album (bấm để xem to).
-  - Viền đen của ảnh được tự cắt; ảnh dọc hiện đủ trên nền mờ.
-  - Địa điểm chưa có ảnh thật dùng ảnh chụp màn hình lúc thắng.
+- **Ảnh kỷ niệm theo địa điểm:** chỉ cần đặt ảnh vào `public/assets/images/characters/`, **đặt tên file theo địa điểm** — game tự nhận, không cần sửa code:
+  - Tên không dấu hoặc có dấu đều được: `halong.png`, `ha-long.jpg`, `Hạ Long.png`. Gõ sai 1 chữ vẫn nhận (vd `phuqquoc.png`).
+  - Nhiều ảnh cho 1 nơi: thêm số ở cuối: `quynhon.png`, `quynhon2.png`, `quynhon3.png`.
+  - Tên địa điểm: `hanoi`, `quynhon`, `catba`, `ninhbinh`, `dalat`, `hoian`, `ninhthuan`, `halong`, `danang`, `phuquoc`, `singapore`.
+  - Ảnh **luôn hiển thị** ở Album (bấm để xem to, ←/→ xem nhiều ảnh), thẻ địa điểm trên bản đồ và màn kết quả.
+  - Viền đen tự cắt; ảnh dọc hiện đủ trên nền mờ. Nơi chưa có ảnh thật dùng ảnh chụp màn hình lúc thắng.
 
-## 8. Ghi chú phát triển
+## 8. Nhạc nền
+
+- Nhạc được **tổng hợp bằng Web Audio** (`src/systems/Music.js`), không cần file: mỗi bối cảnh một bài sôi động — menu, bản đồ, biển (Quy Nhơn, Đà Nẵng, Phú Quốc), thành phố (Hà Nội, Singapore), thiên nhiên (Cát Bà, Đà Lạt, Hạ Long), sa mạc (Ninh Thuận) + nhạc chiến thắng / thua.
+- Bật/tắt: phím **M** hoặc nút 🔊 (menu, bản đồ, menu tạm dừng). Nhạc bắt đầu sau lần bấm phím/chuột đầu tiên (quy định của trình duyệt).
+- Đổi bài cho ván: `LEVEL_MUSIC` trong `src/systems/Music.js`; chỉnh tempo/giọng/phong cách trong `SONGS`.
+
+## 9. Ghi chú phát triển
 
 - Mỗi ván có điều khiển riêng — xem bảng giới thiệu đầu ván hoặc `levels.json`.
 - Debug nhanh trong DevTools (chế độ dev): `__game.scene.start('HaLong')` để vào thẳng một ván.

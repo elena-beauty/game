@@ -140,7 +140,7 @@ Thêm ván mới = tạo 1 class kế thừa `BaseLevel` + 1 mục trong `levels
 - **Sao:** 1 sao = hoàn thành, 2 sao = đạt thời gian/điểm, 3 sao = hoàn hảo (không té, nhặt đủ vật phẩm).
 - **Độ Hạnh Phúc:** tổng sao; mở khóa địa điểm mới & trang phục.
 - **Album Kỷ Niệm:** cuối mỗi ván chụp "ảnh" bằng cách render canvas thành ảnh (`renderer.domElement.toDataURL()`), lưu vào album.
-- **Chặng cuối Singapore:** hoàn thành 8 ván trong nước (hoặc ≥ 16 sao) → mở khóa (xem CHALLENGES.md).
+- **Chặng cuối Singapore:** đạt tối thiểu 2 sao ở mọi địa điểm trong nước → mở khóa (xem CHALLENGES.md).
 
 ## 8. Lộ trình phát triển (Milestones)
 

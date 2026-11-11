@@ -4,6 +4,8 @@ import { FONT, COLORS, titleStyle, textStyle } from '../ui/theme.js';
 import { drawPanel, dimOverlay } from '../ui/Panel.js';
 import { createButton } from '../ui/Button.js';
 import { burst } from '../utils/fx.js';
+import { Music } from '../systems/Music.js';
+import { createMuteButton } from '../ui/MuteButton.js';
 
 /**
  * HUD chạy song song phía trên scene ván: bảng giới thiệu, đồng hồ, thanh chỉ số,
@@ -114,13 +116,22 @@ export class HUDScene extends Phaser.Scene {
         ? this.add.image(x - 108, 40, c.icon).setDisplaySize(36, 36)
         : this.add.text(x - 108, 40, c.icon ?? '•', { fontFamily: FONT, fontSize: '28px', padding: { x: 2, y: 4 } }).setOrigin(0.5);
       const text = this.add.text(x - 56, 40, '', titleStyle(26)).setOrigin(0.5);
+      text.baseScale = text.scale;
+      icon.baseScale = icon.scale;
       item = { text, icon, last: null };
       this.hud.add([bg, icon, text]);
       this.counters.set(c.key, item);
     }
     const str = c.max != null ? `${c.value}/${c.max}` : `${c.value}`;
     if (str !== item.last) {
-      if (item.last !== null) this.tweens.add({ targets: [item.text, item.icon], scale: '*=1.3', duration: 120, yoyo: true });
+      if (item.last !== null) {
+        // Nảy nhẹ về đúng scale gốc — hủy tween cũ để không cộng dồn khi số đổi liên tục.
+        [item.text, item.icon].forEach((o) => {
+          this.tweens.killTweensOf(o);
+          o.setScale(o.baseScale);
+          this.tweens.add({ targets: o, scale: o.baseScale * 1.3, duration: 120, yoyo: true });
+        });
+      }
       item.text.setText(str);
       item.last = str;
     }
@@ -369,10 +380,12 @@ export class HUDScene extends Phaser.Scene {
       this.pauseMenu.destroy();
       this.pauseMenu = null;
       L.scene.resume();
+      Music.duck(false);
       return;
     }
     if (L.state !== 'play') return;
     L.scene.pause();
+    Music.duck(true);
     const { width, height } = this.scale;
     const c = this.add.container(0, 0);
     c.add(dimOverlay(this, 0.55));
@@ -381,6 +394,7 @@ export class HUDScene extends Phaser.Scene {
     c.add(createButton(this, width / 2, height / 2 - 50, 'Tiếp tục', () => this.togglePause(), { theme: 'leaf' }));
     c.add(createButton(this, width / 2, height / 2 + 40, 'Chơi lại', () => L.scene.restart({ level: this.cfg }), { theme: 'sun' }));
     c.add(createButton(this, width / 2, height / 2 + 130, 'Về bản đồ', () => L.scene.start(SCENES.TRAVEL_MAP), { theme: 'ghost' }));
+    c.add(createMuteButton(this, width / 2 + 170, height / 2 - 150));
     this.pauseMenu = c;
   }
 }

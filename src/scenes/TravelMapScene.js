@@ -6,7 +6,9 @@ import { drawPanel, starRow } from '../ui/Panel.js';
 import { titleStyle, textStyle, COLORS, FONT } from '../ui/theme.js';
 import { canvasTexture, linear, radial, ellipse } from '../utils/canvas.js';
 import { burst } from '../utils/fx.js';
-import { hasMemory, memoryUnlocked, memoryKey, coverImage } from '../utils/memory.js';
+import { Music } from '../systems/Music.js';
+import { createMuteButton } from '../ui/MuteButton.js';
+import { hasMemory, memoryKey, coverImage } from '../utils/memory.js';
 
 // Đường viền Việt Nam (lat, lon) — giản lược, đủ để nhận ra hình chữ S.
 const VN_OUTLINE = [
@@ -30,6 +32,7 @@ export class TravelMapScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale;
     this.cameras.main.fadeIn(400, 20, 12, 34);
+    Music.play('map');
     this.drawSea(W, H);
     this.drawLand(W, H);
     this.drawRoute();
@@ -54,6 +57,7 @@ export class TravelMapScene extends Phaser.Scene {
     const first = LEVELS.find((l) => l.key === last) ?? LEVELS.find((l) => SaveSystem.getStars(l.key) === 0) ?? LEVELS[0];
     this.select(first, true);
 
+    createMuteButton(this, 1236, 44);
     this.input.keyboard.on('keydown-ENTER', () => this.play());
     this.input.keyboard.on('keydown-SPACE', () => this.play());
   }
@@ -171,7 +175,7 @@ export class TravelMapScene extends Phaser.Scene {
 
   drawRoute() {
     // Đường đi theo địa lý Bắc → Nam rồi bay sang Singapore (số trên ghim = thứ tự độ khó).
-    const route = ['HaNoi', 'HaLong', 'CatBa', 'DaNang', 'QuyNhon', 'DaLat', 'NinhThuan', 'PhuQuoc', 'Singapore'];
+    const route = ['HaNoi', 'HaLong', 'CatBa', 'NinhBinh', 'DaNang', 'HoiAn', 'QuyNhon', 'DaLat', 'NinhThuan', 'PhuQuoc', 'Singapore'];
     const pts = route.map((k) => LEVELS.find((l) => l.key === k)?.map).filter(Boolean);
     const g = this.add.graphics();
     g.lineStyle(4, 0xffffff, 0.85);
@@ -280,25 +284,26 @@ export class TravelMapScene extends Phaser.Scene {
     frame.fillStyle(0xeae3f0, 1).fillRoundedRect(cx - 140, photoY - 80, 280, 140, 6);
     P.add(frame);
     const photo = SaveSystem.getPhoto(lv.key);
-    if (memoryUnlocked(this, lv.key)) P.add(coverImage(this, cx, photoY - 10, memoryKey(lv.key), 280, 140));
+    if (hasMemory(this, lv.key)) P.add(coverImage(this, cx, photoY - 10, memoryKey(lv.key), 280, 140));
     else if (photo) this.showPhoto(lv.key, photo, cx, photoY - 10, 280, 140);
     else {
       P.add(this.add.image(cx, photoY - 18, 'icon-camera').setAlpha(0.35));
-      const msg = hasMemory(this, lv.key) ? 'Thắng ván để mở ảnh kỷ niệm thật' : 'Chưa có ảnh kỷ niệm';
-      P.add(this.add.text(cx, photoY + 30, msg, textStyle(16, '#9a8aa9')).setOrigin(0.5));
+      P.add(this.add.text(cx, photoY + 30, 'Chưa có ảnh kỷ niệm', textStyle(16, '#9a8aa9')).setOrigin(0.5));
     }
     P.add(this.add.text(cx, photoY + 74, lv.name, textStyle(18, COLORS.ink, { fontStyle: '800' })).setOrigin(0.5));
 
     if (unlocked) {
       P.add(createButton(this, cx, top + ph - 52, best > 0 ? 'Chơi lại' : 'Lên đường!', () => this.play(), { theme: best > 0 ? 'sun' : 'primary', width: 300, height: 70, fontSize: 32 }));
     } else {
-      const need = lv.unlock;
-      P.add(this.add.image(cx - 150, top + ph - 60, 'lock'));
+      const { done, total, min, missing } = SaveSystem.unlockProgress(lv);
+      P.add(this.add.image(cx - 160, top + ph - 62, 'lock'));
       P.add(
         this.add
-          .text(cx + 10, top + ph - 60, `Hoàn thành ${need.levels} ván\nhoặc đạt ${need.orStars} ★ để mở khóa`, textStyle(18, COLORS.ink, { align: 'center', fontStyle: '700' }))
+          .text(cx + 14, top + ph - 76, `Đạt ≥ ${min} ★ ở mọi địa điểm\ntrong nước để mở khóa (${done}/${total})`, textStyle(18, COLORS.ink, { align: 'center', fontStyle: '700' }))
           .setOrigin(0.5),
       );
+      const names = missing.slice(0, 4).map((l) => l.name).join(', ') + (missing.length > 4 ? '…' : '');
+      P.add(this.add.text(cx + 14, top + ph - 28, `Còn thiếu: ${names}`, textStyle(15, COLORS.pinkDark, { align: 'center', fontStyle: '700', wordWrap: { width: 330 } })).setOrigin(0.5));
     }
     P.setAlpha(0);
     P.x = 30;

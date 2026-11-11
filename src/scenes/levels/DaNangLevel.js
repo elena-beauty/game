@@ -40,13 +40,37 @@ export class DaNangLevel extends BaseLevel {
     this.items = [];
     this.spawnIn = 1.2;
     this.milestone = 0;
+    this.gulls = [];
+    this.gullIn = 6;
+    this.closeIn = 11;
+    this.closeout = null;
+    this.hits = 0;
 
     // Nền
     this.add.image(W / 2, H / 2, 'DaNang-sky').setDepth(0);
     this.add.image(980, 90, 'glow-warm').setScale(3.2).setAlpha(0.6).setDepth(1);
     this.add.image(980, 90, 'DaNang-sun').setDepth(1);
     driftClouds(this, { count: 5, yMin: 30, yMax: 170, scrollFactor: 0, depth: 2 });
-    this.add.image(300, HORIZON - 52, 'DaNang-mountain').setDepth(3).setAlpha(0.9);
+    // Thành phố + Cầu Rồng xa xa (ban ngày) + bán đảo Sơn Trà với tượng trắng
+    this.add.image(700, HORIZON + 4, 'DaNang-city').setOrigin(0.5, 1).setScale(0.42, 0.4).setTint(0xa9c6dc).setTintMode(Phaser.TintModes.FILL).setAlpha(0.8).setDepth(2);
+    this.add.image(700, HORIZON + 6, 'DaNang-bridge').setOrigin(0.5, 1).setScale(0.28).setAlpha(0.9).setDepth(2);
+    this.add.image(0, HORIZON + 4, 'DaNang-mountain').setOrigin(0, 1).setDepth(3);
+    this.add.image(190, HORIZON - 134, 'DaNang-statue').setOrigin(0.5, 1).setScale(0.6).setDepth(3);
+    this.add.text(300, HORIZON - 112, 'Sơn Trà', { fontFamily: '"Baloo 2", sans-serif', fontSize: '16px', fontStyle: '800', color: '#ffffff', stroke: '#3a6b85', strokeThickness: 4, padding: { x: 2, y: 3 } }).setOrigin(0.5).setDepth(3);
+    // Dù lượn, thuyền, chim — đời sống quanh bãi biển
+    const para = this.add.image(-80, 120, 'DaNang-parasail').setDepth(2).setScale(0.7);
+    this.tweens.add({ targets: para, x: W + 100, duration: 60000, repeat: -1 });
+    this.tweens.add({ targets: para, y: 140, angle: 4, duration: 2500, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    [[200, 0.5], [760, 0.4]].forEach(([x, sc]) => {
+      const b = this.add.image(x, HORIZON + 6, 'DaNang-boat').setScale(sc).setDepth(5.5);
+      this.tweens.add({ targets: b, x: x + 300, duration: 40000, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: b, y: b.y - 2, duration: 900, yoyo: true, repeat: -1 });
+    });
+    for (let i = 0; i < 3; i++) {
+      const g = this.add.image(Phaser.Math.Between(0, W), Phaser.Math.Between(60, 180), 'DaNang-gull').setScale(0.35).setDepth(2);
+      this.tweens.add({ targets: g, x: g.x - 1600, duration: Phaser.Math.Between(20000, 30000), repeat: -1, onRepeat: () => (g.x = W + 100) });
+      this.tweens.add({ targets: g, scaleY: 0.18, duration: 260, yoyo: true, repeat: -1 });
+    }
     this.beach = this.add.image(1010, HORIZON - 18, 'DaNang-beach').setDepth(4);
     [870, 1180, 1240].forEach((x, i) => this.add.image(x, HORIZON - 6, 'palm').setOrigin(0.5, 1).setScale(0.32 + i * 0.03).setDepth(4));
     this.add.image(W / 2, HORIZON, 'DaNang-sea').setOrigin(0.5, 0).setDepth(5);
@@ -157,6 +181,8 @@ export class DaNangLevel extends BaseLevel {
     this.updateBalance(dt, h);
     this.updateJump(dt, h, inp);
     this.updateItems(dt, top);
+    this.updateGulls(dt);
+    this.updateCloseout(dt, top, range);
 
     // Đặt vị trí người + ván
     const tilt = this.bal * 22 - h * 6;
@@ -190,7 +216,7 @@ export class DaNangLevel extends BaseLevel {
       return;
     }
     // Sóng xô ngẫu nhiên — càng cao càng khó giữ
-    this.balVel += Phaser.Math.FloatBetween(-1, 1) * dt * 4.5 * (0.6 + h);
+    this.balVel += Phaser.Math.FloatBetween(-1, 1) * dt * 3.6 * (0.6 + h);
     if (Math.random() < dt * 0.25) this.balVel += Phaser.Math.FloatBetween(-0.8, 0.8); // sóng lừng
     this.balVel = Phaser.Math.Clamp(this.balVel * 0.985, -0.9, 0.9);
     const ctrl = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
@@ -243,6 +269,9 @@ export class DaNangLevel extends BaseLevel {
     this.wipeouts++;
     this.outTimer = 0;
     this.toast(`${msg} Ngã rồi!`, '#8fe9f2');
+    floatText(this, PLAYER_X, this.py - 70, 'Ùm!', { color: '#ff6b6b' });
+    this.player.setTint(0xff8080);
+    this.time.delayedCall(500, () => this.player.clearTint());
     this.cameras.main.shake(200, 0.008);
     burst(this, PLAYER_X, this.py + 20, { count: 30, speed: 320, scale: 0.9, depth: 45, gravity: 500 });
     this.player.playAnim('hurt');
@@ -261,10 +290,11 @@ export class DaNangLevel extends BaseLevel {
   spawnItem(top) {
     const r = Math.random();
     let type;
-    if (r < 0.38) type = 'star';
-    else if (r < 0.6) type = 'shell';
-    else if (r < 0.84) type = 'rock';
-    else type = 'jetski';
+    if (r < 0.34) type = 'star';
+    else if (r < 0.52) type = 'shell';
+    else if (r < 0.7) type = 'rock';
+    else if (r < 0.85) type = 'jetski';
+    else type = 'surfer';
 
     let y;
     let key;
@@ -278,10 +308,14 @@ export class DaNangLevel extends BaseLevel {
     } else if (type === 'rock') {
       key = 'DaNang-rock';
       y = Phaser.Math.Between(FACE_BOTTOM - 70, FACE_BOTTOM + 10);
-    } else {
+    } else if (type === 'jetski') {
       key = 'DaNang-jetski';
       y = Phaser.Math.Between(top + 20, FACE_BOTTOM - 20);
       extra = 200;
+    } else {
+      key = 'DaNang-surfer';
+      y = Phaser.Math.Between(top + 30, FACE_BOTTOM - 30);
+      extra = -140;
     }
     const s = this.add.image(W + 120, y, key).setDepth(type === 'rock' ? 35 : 36);
     if (type === 'star') s.setDisplaySize(44, 44);
@@ -303,6 +337,10 @@ export class DaNangLevel extends BaseLevel {
         s.y = it.baseY + Math.sin(it.phase) * 6;
         if (it.type === 'star') s.angle += dt * 90;
       } else if (it.type === 'jetski') s.y = it.baseY + Math.sin(it.phase * 1.5) * 4;
+      else if (it.type === 'surfer') {
+        s.y = it.baseY + Math.sin(it.phase * 0.6) * 60;
+        s.angle = Math.sin(it.phase * 0.6) * 10;
+      }
 
       const dx = Math.abs(s.x - PLAYER_X);
       const dy = Math.abs(s.y - this.py);
@@ -318,7 +356,7 @@ export class DaNangLevel extends BaseLevel {
         }
         if (!this.air) {
           it.hit = true;
-          this.wipeout(it.type === 'rock' ? 'Đâm phải đá!' : 'Va mô tô nước!');
+          this.wipeout({ rock: 'Đâm phải đá!', jetski: 'Va mô tô nước!', surfer: 'Va phải người lướt sóng!' }[it.type]);
         }
       }
       if (s.x < -160) {
@@ -327,6 +365,94 @@ export class DaNangLevel extends BaseLevel {
       }
       return true;
     });
+  }
+
+  /** Mòng biển bay tới rồi bổ nhào vào người chơi. */
+  updateGulls(dt) {
+    this.gullIn -= dt;
+    if (this.gullIn <= 0) {
+      this.gullIn = Phaser.Math.FloatBetween(5, 9);
+      const g = this.add.image(W + 60, Phaser.Math.Between(120, 220), 'DaNang-gull').setDepth(55).setScale(0.8);
+      this.tweens.add({ targets: g, scaleY: 0.4, duration: 180, yoyo: true, repeat: -1 });
+      this.gulls.push({ g, state: 'fly' });
+    }
+    this.gulls = this.gulls.filter((o) => {
+      const g = o.g;
+      if (o.state === 'fly') {
+        g.x -= 260 * dt;
+        if (g.x < PLAYER_X + 330) {
+          o.state = 'dive';
+          o.tx = PLAYER_X - 40;
+          o.ty = this.py - 10;
+          floatText(this, g.x, g.y - 30, '!', { color: '#ff6b6b', size: 40 });
+        }
+      } else if (o.state === 'dive') {
+        const a = Phaser.Math.Angle.Between(g.x, g.y, o.tx, o.ty);
+        g.x += Math.cos(a) * 520 * dt;
+        g.y += Math.sin(a) * 520 * dt;
+        if (!o.hit && !this.wiped && Math.abs(g.x - PLAYER_X) < 50 && Math.abs(g.y - this.py) < 60) {
+          o.hit = true;
+          this.hits++;
+          this.score = Math.max(0, this.score - 80);
+          this.bal += this.bal >= 0 ? 0.45 : -0.45;
+          floatText(this, PLAYER_X, this.py - 80, 'Mòng biển xà xuống! −80', { color: '#ff6b6b', size: 24 });
+          this.player.setTint(0xff8080);
+          this.time.delayedCall(350, () => this.player.clearTint());
+          this.cameras.main.shake(150, 0.006);
+          burst(this, PLAYER_X, this.py - 30, { count: 10, tint: 0xffffff, scale: 0.5, depth: 56 });
+        }
+        if (Phaser.Math.Distance.Between(g.x, g.y, o.tx, o.ty) < 20) o.state = 'away';
+      } else {
+        g.x -= 300 * dt;
+        g.y -= 260 * dt;
+      }
+      if (g.x < -100 || g.y < -100) {
+        g.destroy();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /** Sóng đổ (closeout): cảnh báo 2s rồi bức tường bọt quét nửa trên hoặc nửa dưới mặt sóng. */
+  updateCloseout(dt, top, range) {
+    if (!this.closeout) {
+      this.closeIn -= dt;
+      if (this.closeIn <= 0) {
+        const low = Math.random() < 0.55;
+        const warn = this.add.text(W - 150, low ? FACE_BOTTOM - 90 : top + 40, low ? '⚠ Sóng đổ phía dưới!\nLên cao!' : '⚠ Sóng đổ phía trên!\nXuống thấp!', {
+          fontFamily: '"Baloo 2", sans-serif', fontSize: '24px', fontStyle: '800', color: '#ffd166', stroke: '#3a2a3f', strokeThickness: 6, align: 'center', padding: { x: 4, y: 4 },
+        }).setOrigin(0.5).setDepth(70);
+        this.tweens.add({ targets: warn, alpha: 0.3, duration: 200, yoyo: true, repeat: 4 });
+        this.closeout = { low, t: 2, warn, wall: null };
+        this.companion.say(low ? 'Sóng đổ kìa! Lên cao!' : 'Sóng đổ! Xuống thấp!', { force: true });
+      }
+      return;
+    }
+    const c = this.closeout;
+    c.t -= dt;
+    if (c.t <= 0 && !c.wall) {
+      c.warn.destroy();
+      const half = range / 2 + 40;
+      const y = c.low ? FACE_BOTTOM - half / 2 + 30 : top + half / 2 - 20;
+      c.wall = this.add.image(W + 140, y, 'DaNang-closeout').setDepth(37).setDisplaySize(240, half + 40);
+      c.y0 = c.low ? FACE_BOTTOM + 40 - half : top - 60;
+      c.y1 = c.low ? FACE_BOTTOM + 40 : top + half;
+    }
+    if (c.wall) {
+      c.wall.x -= (this.speed + 260) * dt;
+      c.wall.angle = Math.sin(this.t * 8) * 3;
+      if (Math.random() < 0.5) burst(this, c.wall.x - 90, c.wall.y + Phaser.Math.Between(-80, 80), { count: 2, speed: 160, scale: 0.6, depth: 38 });
+      if (!c.hit && Math.abs(c.wall.x - PLAYER_X) < 110 && this.py > c.y0 && this.py < c.y1) {
+        c.hit = true;
+        this.wipeout('Sóng đổ ập vào!');
+      }
+      if (c.wall.x < -200) {
+        c.wall.destroy();
+        this.closeout = null;
+        this.closeIn = Phaser.Math.FloatBetween(9, 14);
+      }
+    }
   }
 
   drawGauge() {
@@ -374,7 +500,7 @@ export class DaNangLevel extends BaseLevel {
   }
 
   getSummary() {
-    return [`Điểm lướt sóng: ${Math.floor(this.score)}`, `Số lần ngã: ${this.wipeouts}`, `Cú nhảy đẹp nhất: +${this.bestTrick}`];
+    return [`Điểm lướt sóng: ${Math.floor(this.score)}`, `Số lần ngã: ${this.wipeouts} · Bị chim xà: ${this.hits}`, `Cú nhảy đẹp nhất: +${this.bestTrick}`];
   }
 
   /** Thắng → trời tối, Cầu Rồng phun lửa, rồi mới chụp ảnh kỷ niệm. */
@@ -397,6 +523,12 @@ export class DaNangLevel extends BaseLevel {
     this.gauge.clear();
     this.spray.frequency = -1;
     this.items.forEach((it) => this.tweens.add({ targets: it.s, alpha: 0, duration: 400 }));
+    this.gulls.forEach((o) => o.g.destroy());
+    this.gulls = [];
+    if (this.closeout) {
+      this.closeout.warn?.destroy();
+      this.closeout.wall?.destroy();
+    }
     this.toast('Tối rồi — Cầu Rồng phun lửa!', '#ffb52e');
     const dusk = this.add.rectangle(W / 2, H / 2, W, H, 0x2a1850, 0).setDepth(30);
     this.tweens.add({ targets: dusk, fillAlpha: 0.55, duration: 900 });

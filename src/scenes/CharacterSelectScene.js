@@ -7,6 +7,7 @@ import { drawPanel } from '../ui/Panel.js';
 import { titleStyle, textStyle, COLORS } from '../ui/theme.js';
 import { skyTexture, canvasTexture } from '../utils/canvas.js';
 import { burst, driftClouds } from '../utils/fx.js';
+import { Music } from '../systems/Music.js';
 
 export class CharacterSelectScene extends Phaser.Scene {
   constructor() {
@@ -16,6 +17,7 @@ export class CharacterSelectScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale;
     this.cameras.main.fadeIn(400, 20, 12, 34);
+    Music.play('menu');
     skyTexture(this, 'select-bg', W, H, [[0, '#8fd3fe'], [0.6, '#ffd6e8'], [1, '#ffeacc']]);
     this.add.image(W / 2, H / 2, 'select-bg');
     // Họa tiết chấm bi

@@ -43,10 +43,19 @@ export const SaveSystem = {
   completedCount() {
     return Object.values(this.get('stars', {})).filter((s) => s > 0).length;
   },
-  /** Ván trong nước luôn mở; Singapore cần đủ 8 ván hoặc ≥ 16 sao. */
+  /** Ván trong nước luôn mở; Singapore cần MỌI địa điểm trong nước đạt ≥ minStarsEach sao. */
   isUnlocked(level) {
     if (!level.unlock) return true;
-    return this.completedCount() >= level.unlock.levels || this.totalStars() >= level.unlock.orStars;
+    const { done, total } = this.unlockProgress(level);
+    return done >= total;
+  },
+  /** Tiến độ mở khóa: số địa điểm trong nước đã đạt đủ sao / tổng số. */
+  unlockProgress(level) {
+    const min = level.unlock?.minStarsEach ?? 2;
+    const domestic = LEVELS.filter((l) => !l.unlock);
+    const done = domestic.filter((l) => this.getStars(l.key) >= min).length;
+    const missing = domestic.filter((l) => this.getStars(l.key) < min);
+    return { done, total: domestic.length, min, missing };
   },
   getPhoto(levelKey) {
     return this.get('album', {})[levelKey] ?? null;

@@ -1,13 +1,71 @@
-// Ảnh kỷ niệm thật theo địa điểm (levels.json → "memoryPhoto"), mở khóa khi thắng ván.
-import { SaveSystem } from '../systems/SaveSystem.js';
+// Ảnh kỷ niệm thật theo địa điểm — tự ghép theo TÊN FILE trong public/assets/images/characters.
+// Ví dụ: quynhon.png, quy-nhon-2.jpg, "Phú Quốc.png", phuqquoc.png (sai 1 chữ vẫn nhận) → đúng địa điểm.
+import files from 'virtual:memory-photos';
+import { LEVELS } from '../systems/SaveSystem.js';
 
-export const memoryKey = (levelKey) => `memory-${levelKey}`;
+export const PHOTO_FOLDER = 'images/characters';
+const IGNORE = ['boy', 'girl']; // ảnh khuôn mặt nhân vật
+
+const norm = (s) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/** Tìm địa điểm khớp tên file (bỏ đuôi, bỏ số thứ tự ở cuối). */
+function matchLevel(file) {
+  const base = norm(file.replace(/\.[^.]+$/, '')).replace(/\d+$/, '');
+  if (!base || IGNORE.includes(base)) return null;
+  let best = null;
+  let bestDist = Infinity;
+  LEVELS.forEach((lv) => {
+    [norm(lv.key), norm(lv.name)].forEach((name) => {
+      const dist = base === name || base.startsWith(name) ? 0 : lev(base, name);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = lv;
+      }
+    });
+  });
+  return bestDist <= Math.max(1, Math.floor(base.length / 6)) ? best : null;
+}
+
+/** { levelKey: [file, ...] } */
+export const MEMORY_FILES = {};
+files.forEach((f) => {
+  const lv = matchLevel(f);
+  if (lv) (MEMORY_FILES[lv.key] ??= []).push(f);
+});
+
+/** Danh sách texture key ảnh của 1 địa điểm. */
+export const memoryKeys = (levelKey) => (MEMORY_FILES[levelKey] ?? []).map((_, i) => `memory-${levelKey}-${i}`);
+
+/** Texture key ảnh đầu tiên. */
+export const memoryKey = (levelKey) => `memory-${levelKey}-0`;
 
 /** Địa điểm có ảnh thật đã tải được không. */
 export const hasMemory = (scene, levelKey) => scene.textures.exists(memoryKey(levelKey));
 
-/** Ảnh thật đã mở khóa (có ảnh + đã thắng ván ít nhất 1 lần). */
-export const memoryUnlocked = (scene, levelKey) => hasMemory(scene, levelKey) && SaveSystem.getStars(levelKey) > 0;
+/** Ảnh kỷ niệm luôn hiển thị (không cần thắng ván). Giữ tên hàm cho tương thích. */
+export const memoryUnlocked = hasMemory;
+
+/** Gọi trong preload(): tải mọi ảnh kỷ niệm. */
+export function loadMemoryPhotos(scene) {
+  Object.entries(MEMORY_FILES).forEach(([levelKey, list]) =>
+    list.forEach((f, i) => scene.load.image(`memory-${levelKey}-${i}`, `${PHOTO_FOLDER}/${encodeURIComponent(f)}`)),
+  );
+}
 
 /**
  * Tìm vùng ảnh thật (bỏ viền đen/trong suốt) và thêm frame 'trim' vào texture.

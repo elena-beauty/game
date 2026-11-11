@@ -37,11 +37,11 @@ export class Companion extends Phaser.GameObjects.Sprite {
   }
 
   /** Nói 1 câu (bóng thoại). Có cooldown để không spam. */
-  say(text, { force = false, duration = 1800 } = {}) {
+  say(text, { force = false, duration = 1800, depth = 5000 } = {}) {
     const now = this.scene.time.now;
-    if (!force && now - this.lastSay < 2500) return;
+    if (!force && now - this.lastSay < 2500) return null;
     this.lastSay = now;
-    speechBubble(this.scene, this.x, this.y - this.displayHeight * 0.55, text, { duration });
+    return speechBubble(this.scene, this.x, this.y - this.displayHeight * 0.55, text, { duration, depth });
   }
 
   cheer() {

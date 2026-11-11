@@ -6,7 +6,8 @@ import { createButton } from '../ui/Button.js';
 import { drawPanel } from '../ui/Panel.js';
 import { titleStyle, textStyle, COLORS } from '../ui/theme.js';
 import { burst } from '../utils/fx.js';
-import { memoryUnlocked, memoryKey, coverImage } from '../utils/memory.js';
+import { Music } from '../systems/Music.js';
+import { hasMemory, memoryKey, coverImage } from '../utils/memory.js';
 
 export class ResultScene extends Phaser.Scene {
   constructor() {
@@ -27,6 +28,7 @@ export class ResultScene extends Phaser.Scene {
       if (photo) SaveSystem.setPhoto(levelKey, photo);
     }
     this.cameras.main.fadeIn(400, 20, 12, 34);
+    this.time.delayedCall(win ? 1800 : 600, () => Music.play('map'));
 
     // Nền
     const base = Phaser.Display.Color.HexStringToColor(lv.color).color;
@@ -71,7 +73,7 @@ export class ResultScene extends Phaser.Scene {
         this.tweens.add({ targets: nb, scale: 1, delay: 1500, duration: 400, ease: 'Back.Out' });
       }
       // Ảnh polaroid
-      if (memoryUnlocked(this, levelKey)) this.memoryPolaroid(levelKey, lv, cx, cy + 28, prev === 0);
+      if (hasMemory(this, levelKey)) this.memoryPolaroid(levelKey, lv, cx, cy + 28);
       else if (photo) this.polaroid(photo, cx, cy + 28);
       else this.add.image(cx, cy + 28, 'icon-camera').setScale(1.5);
 
@@ -122,7 +124,7 @@ export class ResultScene extends Phaser.Scene {
   }
 
   /** Ảnh kỷ niệm thật của địa điểm (mở khóa khi thắng). */
-  memoryPolaroid(levelKey, lv, x, y, isNew) {
+  memoryPolaroid(levelKey, lv, x, y) {
     const c = this.add.container(x, y).setScale(0);
     const g = this.add.graphics();
     g.fillStyle(0x000000, 0.25).fillRect(-150 + 6, -95 + 8, 300, 200);
@@ -131,10 +133,6 @@ export class ResultScene extends Phaser.Scene {
     const cap = this.add.text(0, 84, `♥ Kỷ niệm ở ${lv.name}`, textStyle(16, COLORS.pinkDark, { fontStyle: '800' })).setOrigin(0.5);
     c.add([g, img, cap]);
     this.tweens.add({ targets: c, scale: 0.85, duration: 500, delay: 300, ease: 'Back.Out' });
-    if (isNew) {
-      const tag = this.add.text(x - 150, y - 92, 'Mở khóa ảnh mới!', titleStyle(20, '#ffffff', '#d94a7b')).setOrigin(0.5).setScale(0);
-      this.tweens.add({ targets: tag, scale: 1, duration: 400, delay: 1200, ease: 'Back.Out' });
-    }
   }
 
   polaroid(dataUrl, x, y) {

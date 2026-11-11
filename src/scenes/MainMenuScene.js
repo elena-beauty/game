@@ -5,6 +5,8 @@ import { createButton } from '../ui/Button.js';
 import { titleStyle, textStyle } from '../ui/theme.js';
 import { canvasTexture, skyTexture, ridgeTexture, linear, radial, ellipse } from '../utils/canvas.js';
 import { driftClouds } from '../utils/fx.js';
+import { Music } from '../systems/Music.js';
+import { createMuteButton } from '../ui/MuteButton.js';
 
 /** Màn hình chính: bãi biển hoàng hôn, 2 vợ chồng nắm tay, tim bay. */
 export class MainMenuScene extends Phaser.Scene {
@@ -16,6 +18,7 @@ export class MainMenuScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale;
     const horizon = 430;
     this.cameras.main.fadeIn(500, 20, 12, 34);
+    Music.play('menu');
 
     // Trời hoàng hôn
     skyTexture(this, 'menu-sky', W, H, [[0, '#6a5acd'], [0.35, '#ff8fa3'], [0.6, '#ffc49b'], [1, '#ffe8b8']]);
@@ -134,6 +137,7 @@ export class MainMenuScene extends Phaser.Scene {
     g.fillStyle(0x3a2a3f, 0.45).fillRoundedRect(20, 20, 200, 48, 24);
     this.add.image(50, 44, 'star').setDisplaySize(34, 34);
     this.add.text(76, 44, `${stars} / ${LEVELS.length * 3}`, textStyle(24, '#ffffff', { fontStyle: '800' })).setOrigin(0, 0.5);
+    createMuteButton(this, this.scale.width - 40, 44);
   }
 
   go(scene) {
